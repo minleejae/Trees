@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stack>
 
 using namespace std;
 
@@ -7,69 +8,83 @@ struct Node {
     int height;
     Node *left;
     Node *right;
-    Node() : key(0), height(0), left(nullptr), right(nullptr) {}
-};
 
+    Node() : key(0), height(1), left(nullptr), right(nullptr) {}
+};
 
 Node *getNode() {
     return new Node();
 }
 
 
-void insertBST(Node **Tree, int newKey) {
+void insertBST(Node **T, int newKey) {
     //삽입 위치 찾기
-    Node *p = *Tree, *q = nullptr;
+    Node *p = *T, *q = nullptr;
+    stack<Node *> stack;
 
     while (p != nullptr) {
-        q = p;
-        if (newKey < p->key) p = p->left;
-        else if (newKey > p->key) p = p->right;
-        else {
+        if (newKey == p->key) {
             cout << "i " << newKey << " : The key already exist" << '\n';
             return;
         }
+        q = p;
+        stack.push(q);
+        if (newKey < p->key) p = p->left;
+        else if (newKey > p->key) p = p->right;
     }
 
     //새로운 노드 만들어서 삽입
     Node *newNode = getNode();
     newNode->key = newKey;
-    newNode->right = nullptr;
-    newNode->left = nullptr;
 
-    if (*Tree == nullptr) {
-        *Tree = newNode;
+    if (*T == nullptr) {
+        *T = newNode;
     } else if (newKey < q->key) {
         q->left = newNode;
     } else {
         q->right = newNode;
     }
+
+
+    while (!stack.empty()) {
+        q = stack.top();
+        stack.pop();
+
+        if (q->left != nullptr && q->right != nullptr) {
+            q->height = 1 + max(q->left->height, q->right->height);
+        } else if (q->left != nullptr) {
+            q->height = 1 + q->left->height;
+        } else if (q->right != nullptr) {
+            q->height = 1 + q->right->height;
+        } else{
+            q->height = 0;
+        }
+    }
 }
 
-int height(Node *Tree) {
-    if(Tree == nullptr) return 0;
-    int leftHeight = height(Tree->left);
-    int rightHeight = height(Tree->right);
-    return 1 + max(leftHeight, rightHeight);
+int height(Node *T) {
+    if(T== nullptr) return 0;
+    return T->height;
 }
 
-int noNodes(Node *Tree) {
-    if (Tree == nullptr) return 0;
+int noNodes(Node *T) {
+    if (T == nullptr) return 0;
     int cnt = 1;
-    cnt += noNodes(Tree->left);
-    cnt += noNodes(Tree->right);
+    cnt += noNodes(T->left);
+    cnt += noNodes(T->right);
     return cnt;
 }
 
-Node *maxNode(Node *Tree) {
-    Node *p = Tree;
+Node *maxNode(Node *T) {
+    Node *p = T;
     while (p->right) {
         p = p->right;
     }
     return p;
 }
 
-Node *minNode(Node *Tree) {
-    Node *p = Tree;
+Node *minNode(Node *T) {
+    Node *p = T;
     while (p->left) {
         p = p->left;
     }
@@ -77,35 +92,33 @@ Node *minNode(Node *Tree) {
 }
 
 
-void deleteBST(Node **Tree, int deleteKey) {
+void deleteBST(Node **T, int deleteKey) {
     //삭제할 노드 p,  삭제할 노드의 부모 노드 q
-    Node *p = *Tree, *q = nullptr;
+    Node *p = *T, *q = nullptr;
+    stack<Node *> stack;
 
     while (p != nullptr) {
         if (deleteKey == p->key) break;
         q = p;
+        stack.push(q);
 
         if (deleteKey < p->key) p = p->left;
         else p = p->right;
     }
 
-    //삭제할 원소가 없음
+    //삭제할 원소가 없는 경우
     if (p == nullptr) {
         cout << "d " << deleteKey << " : The key does not exist" << '\n';
         return;
     }
-    //루트 노드만 있는 경우, 루트를 삭제
-    if (q == nullptr) {
-        if (p->left == nullptr && p->left == nullptr) {
-            delete *Tree;
-            *Tree = nullptr;
-            return;
-        }
-    }
 
     // 삭제할 노드의 차수가 0인 경우(리프 노드)
     if (p->left == nullptr && p->right == nullptr) {
-        if (q->left == p) {
+        //루트 노드만 있는 경우, 루트를 삭제
+        if (q == nullptr) {
+            delete *T;
+            *T = nullptr;
+        } else if (q->left == p) {
             delete q->left;
             q->left = nullptr;
         } else {
@@ -121,6 +134,7 @@ void deleteBST(Node **Tree, int deleteKey) {
                 p->key = tmp->key;
                 deleteBST(&p->left, p->key);
             } else {
+                cout << "?" << '\n';
                 Node *tmp = maxNode(p->right);
                 p->key = tmp->key;
                 deleteBST(&p->right, p->key);
@@ -152,63 +166,104 @@ void deleteBST(Node **Tree, int deleteKey) {
                 p = nullptr;
             }
         }
-
-
     } else { // 삭제할 노드의 차수가 2인 경우
-        Node *r = maxNode(p->left);
+        string flag;
+        Node *r = nullptr;
+
+        stack.push(p);
+
+        int leftHeight = height(p->left);
+        int rightHeight = height(p->right);
+
+        if (leftHeight > rightHeight) {
+            r = maxNode(p->left);
+            flag = "LEFT";
+        } else if (leftHeight < rightHeight) {
+            r = minNode(p->right);
+            flag = "RIGHT";
+        } else {
+            int leftNodes = noNodes(p->left);
+            int rightNodes = noNodes(p->right);
+
+            if (leftNodes >= rightNodes) {
+                r = maxNode(p->left);
+                flag = "LEFT";
+            } else {
+                r = minNode(p->right);
+                flag = "RIGHT";
+            }
+        }
+
         p->key = r->key;
-        deleteBST(&p->left, r->key);
+        if (flag == "LEFT") {
+            deleteBST(&p->left, r->key);
+        } else {
+            deleteBST(&p->right, r->key);
+        }
+    }
+
+    //height 구하기
+    while (!stack.empty()) {
+        q = stack.top();
+        stack.pop();
+        if (q->left != nullptr && q->right != nullptr) {
+            q->height = 1 + max(q->left->height, q->right->height);
+        } else if (q->left != nullptr) {
+            q->height = 1 + q->left->height;
+        } else if (q->right != nullptr) {
+            q->height = 1 + q->right->height;
+        } else{
+            q->height = 0;
+        }
     }
 }
 
 
-void inOrder(Node *Tree) {
-    if (Tree == nullptr) return;
-    inOrder(Tree->left);
-    cout << Tree->key << '\n';
-    inOrder(Tree->right);
+void inOrder(Node *T) {
+    if (T == nullptr) return;
+    inOrder(T->left);
+    cout << T->key << ' ';
+    inOrder(T->right);
 }
 
 
 int main() {
-    Node *Tree = nullptr;
+    Node *T = nullptr;
 
 
-    insertBST(&Tree, 50);
-    insertBST(&Tree, 20);
-    insertBST(&Tree, 30);
-    insertBST(&Tree, 10);
+    insertBST(&T, 50);
+    cout << "Height : " << height(T) << '\n';
 
-    inOrder(Tree);
+    insertBST(&T, 20);
+    cout << "Height : " << height(T) << '\n';
+    insertBST(&T, 30);
+    cout << "Height : " << height(T) << '\n';
+    insertBST(&T, 10);
 
-
-    cout << "Height : " << height(Tree->left) << '\n';
+    inOrder(T);
+    cout << "Height : " << height(T) << '\n';
     cout << "-------\n";
 
+    deleteBST(&T, 50);
 
-
-
-    deleteBST(&Tree, 50);
-    inOrder(Tree);
-    cout << "Height : " << height(Tree->left) << '\n';
+    height(T);
+    inOrder(T);
     cout << "-------\n";
 
-
-    deleteBST(&Tree, 20);
-    inOrder(Tree);
-    cout << "Height : " << height(Tree->left) << '\n';
+    deleteBST(&T, 20);
+    inOrder(T);
+    height(T);
     cout << "-------\n";
 
+    deleteBST(&T, 30);
+    inOrder(T);
+    height(T);
+    cout << "-----g--\n";
 
-    deleteBST(&Tree, 30);
-    inOrder(Tree);
-    cout << "Height : " << height(Tree->left) << '\n';
-    cout << "-------\n";
 
-
-    deleteBST(&Tree, 10);
-    inOrder(Tree);
-    cout << "Height : " << height(Tree) << '\n';
+    deleteBST(&T, 10);
+    inOrder(T);
+    height(T);
     cout << "-------\n";
 
     return 0;
