@@ -16,6 +16,11 @@ Node *getNode() {
     return new Node();
 }
 
+int height(Node *T) {
+    if (T == nullptr) return 0;
+    return T->height;
+}
+
 
 void insertBST(Node **T, int newKey) {
     //삽입 위치 찾기
@@ -50,22 +55,11 @@ void insertBST(Node **T, int newKey) {
         q = stack.top();
         stack.pop();
 
-        if (q->left != nullptr && q->right != nullptr) {
-            q->height = 1 + max(q->left->height, q->right->height);
-        } else if (q->left != nullptr) {
-            q->height = 1 + q->left->height;
-        } else if (q->right != nullptr) {
-            q->height = 1 + q->right->height;
-        } else {
-            q->height = 0;
-        }
+        q->height = 1 + max(height(q->left), height(q->right));
     }
 }
 
-int height(Node *T) {
-    if (T == nullptr) return 0;
-    return T->height;
-}
+
 
 int noNodes(Node *T) {
     if (T == nullptr) return 0;
@@ -205,15 +199,7 @@ void deleteBST(Node **T, int deleteKey) {
     while (!stack.empty()) {
         q = stack.top();
         stack.pop();
-        if (q->left != nullptr && q->right != nullptr) {
-            q->height = 1 + max(q->left->height, q->right->height);
-        } else if (q->left != nullptr) {
-            q->height = 1 + q->left->height;
-        } else if (q->right != nullptr) {
-            q->height = 1 + q->right->height;
-        } else {
-            q->height = 0;
-        }
+        q->height = 1 + max(height(q->left), height(q->right));
     }
 }
 
@@ -221,7 +207,8 @@ void deleteBST(Node **T, int deleteKey) {
 void inOrder(Node *T) {
     if (T == nullptr) return;
     inOrder(T->left);
-    cout << T->key << ' ';
+//    cout << T->key << ' ';
+    cout << T->key << ' ' << T->height << '\n';
     inOrder(T->right);
 }
 
