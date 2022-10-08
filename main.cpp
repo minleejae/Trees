@@ -56,14 +56,14 @@ void insertBST(Node **T, int newKey) {
             q->height = 1 + q->left->height;
         } else if (q->right != nullptr) {
             q->height = 1 + q->right->height;
-        } else{
+        } else {
             q->height = 0;
         }
     }
 }
 
 int height(Node *T) {
-    if(T== nullptr) return 0;
+    if (T == nullptr) return 0;
     return T->height;
 }
 
@@ -211,7 +211,7 @@ void deleteBST(Node **T, int deleteKey) {
             q->height = 1 + q->left->height;
         } else if (q->right != nullptr) {
             q->height = 1 + q->right->height;
-        } else{
+        } else {
             q->height = 0;
         }
     }
@@ -229,20 +229,20 @@ void inOrder(Node *T) {
 int main() {
     Node *T = nullptr;
 
-    while(1){
-        char c;
-        int num;
-        cin >> c >> num;
+    //파일 입력
+    freopen("BST-input.txt", "rt", stdin);
+//    freopen("output_test2.txt", "w", stdout);
 
-        if(c== 'i'){
+    char c;
+    int num;
+    while (cin >> c >> num) {
+        if (c == 'i') {
             insertBST(&T, num);
-        }
-        else if(c== 'd'){
+        } else if (c == 'd') {
             deleteBST(&T, num);
         }
         inOrder(T);
         cout << '\n';
     }
-
     return 0;
 }
