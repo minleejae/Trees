@@ -7,7 +7,6 @@ struct Node {
     int height;
     Node *left;
     Node *right;
-
     Node() : key(0), height(0), left(nullptr), right(nullptr) {}
 };
 
@@ -47,25 +46,34 @@ void insertBST(Node **Tree, int newKey) {
 }
 
 int height(Node *Tree) {
-
+    if(Tree == nullptr) return 0;
+    int leftHeight = height(Tree->left);
+    int rightHeight = height(Tree->right);
+    return 1 + max(leftHeight, rightHeight);
 }
 
-bool noNodes(Node *Tree) {
-
+int noNodes(Node *Tree) {
+    if (Tree == nullptr) return 0;
+    int cnt = 1;
+    cnt += noNodes(Tree->left);
+    cnt += noNodes(Tree->right);
+    return cnt;
 }
 
 Node *maxNode(Node *Tree) {
     Node *p = Tree;
-
     while (p->right) {
         p = p->right;
     }
-
     return p;
 }
 
 Node *minNode(Node *Tree) {
-
+    Node *p = Tree;
+    while (p->left) {
+        p = p->left;
+    }
+    return p;
 }
 
 
@@ -107,14 +115,13 @@ void deleteBST(Node **Tree, int deleteKey) {
     }// 삭제할 노드의 차수가 1인 경우
     else if (p->left == nullptr || p->right == nullptr) {
         //삭제 해야 할 노드가 루트 노드고 차수가 1개인 경우
-        if(q== nullptr){
-            if(p->left != nullptr){
-                Node* tmp = maxNode(p->left);
+        if (q == nullptr) {
+            if (p->left != nullptr) {
+                Node *tmp = maxNode(p->left);
                 p->key = tmp->key;
                 deleteBST(&p->left, p->key);
-            }
-            else{
-                Node* tmp = maxNode(p->right);
+            } else {
+                Node *tmp = maxNode(p->right);
                 p->key = tmp->key;
                 deleteBST(&p->right, p->key);
             }
@@ -124,8 +131,6 @@ void deleteBST(Node **Tree, int deleteKey) {
                 q->left = p->left;
 
                 delete p;
-
-
                 p = nullptr;
             } else {
                 q->right = p->left;
@@ -134,14 +139,13 @@ void deleteBST(Node **Tree, int deleteKey) {
                 p = nullptr;
             }
         }// p의 오른쪽 자식만 있는 경우
-        else{
-            if(q->left == p){
+        else {
+            if (q->left == p) {
                 q->left = p->right;
 
                 delete p;
                 p = nullptr;
-            }
-            else{
+            } else {
                 q->right = p->right;
 
                 delete p;
@@ -176,27 +180,35 @@ int main() {
     insertBST(&Tree, 10);
 
     inOrder(Tree);
+
+
+    cout << "Height : " << height(Tree->left) << '\n';
     cout << "-------\n";
+
+
 
 
     deleteBST(&Tree, 50);
     inOrder(Tree);
+    cout << "Height : " << height(Tree->left) << '\n';
     cout << "-------\n";
 
 
     deleteBST(&Tree, 20);
     inOrder(Tree);
+    cout << "Height : " << height(Tree->left) << '\n';
     cout << "-------\n";
 
 
     deleteBST(&Tree, 30);
     inOrder(Tree);
+    cout << "Height : " << height(Tree->left) << '\n';
     cout << "-------\n";
-
 
 
     deleteBST(&Tree, 10);
     inOrder(Tree);
+    cout << "Height : " << height(Tree) << '\n';
     cout << "-------\n";
 
     return 0;
