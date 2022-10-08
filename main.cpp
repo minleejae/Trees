@@ -24,7 +24,7 @@ void insertBST(Node **T, int newKey) {
 
     while (p != nullptr) {
         if (newKey == p->key) {
-            cout << "i " << newKey << " : The key already exist" << '\n';
+            cout << "i " << newKey << " : The key already exists" << '\n';
             return;
         }
         q = p;
@@ -134,8 +134,7 @@ void deleteBST(Node **T, int deleteKey) {
                 p->key = tmp->key;
                 deleteBST(&p->left, p->key);
             } else {
-                cout << "?" << '\n';
-                Node *tmp = maxNode(p->right);
+                Node *tmp = minNode(p->right);
                 p->key = tmp->key;
                 deleteBST(&p->right, p->key);
             }
@@ -230,41 +229,20 @@ void inOrder(Node *T) {
 int main() {
     Node *T = nullptr;
 
+    while(1){
+        char c;
+        int num;
+        cin >> c >> num;
 
-    insertBST(&T, 50);
-    cout << "Height : " << height(T) << '\n';
-
-    insertBST(&T, 20);
-    cout << "Height : " << height(T) << '\n';
-    insertBST(&T, 30);
-    cout << "Height : " << height(T) << '\n';
-    insertBST(&T, 10);
-
-    inOrder(T);
-    cout << "Height : " << height(T) << '\n';
-    cout << "-------\n";
-
-    deleteBST(&T, 50);
-
-    height(T);
-    inOrder(T);
-    cout << "-------\n";
-
-    deleteBST(&T, 20);
-    inOrder(T);
-    height(T);
-    cout << "-------\n";
-
-    deleteBST(&T, 30);
-    inOrder(T);
-    height(T);
-    cout << "-----g--\n";
-
-
-    deleteBST(&T, 10);
-    inOrder(T);
-    height(T);
-    cout << "-------\n";
+        if(c== 'i'){
+            insertBST(&T, num);
+        }
+        else if(c== 'd'){
+            deleteBST(&T, num);
+        }
+        inOrder(T);
+        cout << '\n';
+    }
 
     return 0;
 }
