@@ -126,10 +126,12 @@ void deleteBST(Node **T, int deleteKey) {
             if (p->left != nullptr) {
                 Node *tmp = maxNode(p->left);
                 p->key = tmp->key;
+                p->height = tmp->height;
                 deleteBST(&p->left, p->key);
             } else {
                 Node *tmp = minNode(p->right);
                 p->key = tmp->key;
+                p->height = tmp->height;
                 deleteBST(&p->right, p->key);
             }
         }// 삭제 해야 할 노드가 루트 노드가 아니고, 차수가 1개인 노드인 경우
@@ -188,6 +190,7 @@ void deleteBST(Node **T, int deleteKey) {
         }
 
         p->key = r->key;
+        p->height = r->height;
         if (flag == "LEFT") {
             deleteBST(&p->left, r->key);
         } else {
@@ -207,8 +210,8 @@ void deleteBST(Node **T, int deleteKey) {
 void inOrder(Node *T) {
     if (T == nullptr) return;
     inOrder(T->left);
-//    cout << T->key << ' ';
-    cout << T->key << ' ' << T->height << '\n';
+    cout << T->key << ' ';
+//    cout << T->key << ' ' << T->height << '\n';
     inOrder(T->right);
 }
 
@@ -218,7 +221,7 @@ int main() {
 
     //파일 입력
     freopen("BST-input.txt", "rt", stdin);
-//    freopen("output_test2.txt", "w", stdout);
+//    freopen("output_test5.txt", "w", stdout);
 
     char c;
     int num;
