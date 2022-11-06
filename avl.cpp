@@ -61,7 +61,6 @@ void checkBalance(Node **T, int newKey, string *rotationType, Node **p, Node **q
         *q = stack.top();
         stack.pop();
         (*q)->bf = height((*q)->left) - height((*q)->right);
-        cout << "here " << (*q)->key << ' ' << (*q)->bf << '\n';
 
         // 불균형으로 판명된 최초의 노드 발견 하여 x에 대입, f는 x의 부모 노드
         if (1 < (*q)->bf || (*q)->bf < -1) {
@@ -128,9 +127,12 @@ void rotateTree(Node **T, string rotationType, Node *p, Node **q) {
         a->left = b->right;
         b->right = a;
 
-        //p의 부모노드 q가 nullptr인 경우 트리의 루트노드가 b가 되도록 함
+        //p의 부모노드 q가 nullptr인 경우 트리의 루트노드가 b가 되도록 함, 아니면 q와 p의 키값을 비교하고 서브트리 지정
         if (*q == nullptr) *T = b;
-        else (*q)->left = b;
+        else if((*q)->key > p->key) (*q)->left = b;
+        else (*q)->right = b;
+
+
         //노드 높이, 밸런싱팩터 재계산
         a->height = 1 + max(height(a->left), height(a->right));
         a->bf = height(a->left) - height(a->right);
@@ -138,6 +140,7 @@ void rotateTree(Node **T, string rotationType, Node *p, Node **q) {
         b->bf = height(b->left) - height(b->right);
 
     } else if (rotationType == "LR") {
+        //재균형
         a = p;
         b = p->left;
         c = b->right;
@@ -147,21 +150,60 @@ void rotateTree(Node **T, string rotationType, Node *p, Node **q) {
         c->left = b;
         c->right = a;
 
-        if (c->bf == 0) {
+        //p의 부모노드 q가 nullptr인 경우 트리의 루트노드가 c가 되도록 함, 아니면 q와 p의 키값을 비교하고 서브트리 지정
+        if (*q == nullptr) *T = c;
+        else if((*q)->key > p->key) (*q)->left = c;
+        else (*q)->right = c;
 
-        } else if (c->bf == 1) {
-
-        } else if (c->bf == -1) {
-
-        }
-
+        //노드 높이, 밸런싱팩터 재계산
+        a->height = 1 + max(height(a->left), height(a->right));
+        a->bf = height(a->left) - height(a->right);
+        b->height = 1 + max(height(b->left), height(b->right));
+        b->bf = height(b->left) - height(b->right);
+        c->height = 1 + max(height(c->left) , height(c->right));
+        c->bf = height(a->left) - height(a->right);
 
     } else if (rotationType == "RR") {
+        //재균형
+        a = p;
+        b = p->right;
+        a->right = b->left;
+        b->left = a;
 
+        //p의 부모노드 q가 nullptr인 경우 트리의 루트노드가 b가 되도록 함, 아니면 q와 p의 키값을 비교하고 서브트리 지정
+        if (*q == nullptr) *T = b;
+        else if((*q)->key > p->key) (*q)->left = b;
+        else (*q)->right = b;
+
+        //노드 높이, 밸런싱팩터 재계산
+        a->height = 1 + max(height(a->left), height(a->right));
+        a->bf = height(a->left) - height(a->right);
+        b->height = 1 + max(height(b->left), height(b->right));
+        b->bf = height(b->left) - height(b->right);
 
     } else if (rotationType == "RL") {
+        //재균형
+        a = p;
+        b = p->right;
+        c = b->left;
 
+        b->left = c->right;
+        a->right = c->left;
+        c->right = b;
+        c->left = a;
 
+        //p의 부모노드 q가 nullptr인 경우 트리의 루트노드가 c가 되도록 함
+        if (*q == nullptr) *T = c;
+        else if((*q)->key > p->key) (*q)->left = c;
+        else (*q)->right = c;
+
+        //노드 높이, 밸런싱팩터 재계산
+        a->height = 1 + max(height(a->left), height(a->right));
+        a->bf = height(a->left) - height(a->right);
+        b->height = 1 + max(height(b->left), height(b->right));
+        b->bf = height(b->left) - height(b->right);
+        c->height = 1 + max(height(c->left) , height(c->right));
+        c->bf = height(a->left) - height(a->right);
     }
 
 
@@ -248,7 +290,10 @@ void deleteAVL(Node **T, int deleteKey) {
 
     // Step2: 균형 검사
     checkBalance(T, parent->key, &rotationType, &p, &q);
+    //rotationType 출력
+    cout << rotationType << ' ';
 
+    //Step 3: rebalancing 실행
     if (rotationType != "NO") {
         rotateTree(T, rotationType, p, &q);
     }
@@ -269,7 +314,7 @@ int main() {
     Node *T = nullptr;
 
     //파일 입력
-//    freopen("BST-input.txt", "rt", stdin);
+//    freopen("AVL-input.txt", "rt", stdin);
 
     char c;
     int num;
@@ -448,7 +493,6 @@ Node *deleteBST(Node **T, int deleteKey) {
         stack.pop();
         q->height = 1 + max(height(q->left), height(q->right));
     }
-
 
     return ret;
 }
