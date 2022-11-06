@@ -314,7 +314,8 @@ int main() {
     Node *T = nullptr;
 
     //파일 입력
-//    freopen("AVL-input.txt", "rt", stdin);
+    freopen("AVL-input.txt", "rt", stdin);
+    freopen("output_test2.txt", "w", stdout);
 
     char c;
     int num;
