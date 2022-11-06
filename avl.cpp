@@ -49,10 +49,10 @@ void checkBalance(Node **T, int newKey, string *rotationType, Node **p, Node **q
 
     //newKey를 발견할 때까지 BST 탐색하면서 stack에 추가
     while (*p != nullptr) {
-        if (newKey == (*p)->key) break;
-
         *q = *p;
         stack.push(*q);
+        if (newKey == (*p)->key) break;
+
         if (newKey < (*p)->key) *p = (*p)->left;
         else *p = (*p)->right;
     }
@@ -109,13 +109,13 @@ void rotateTree(Node **T, string rotationType, Node *p, Node **q) {
     Node *c = nullptr;
 
     // 루트노드부터 p까지 높이와 bf를 다시 업데이트 하기 위한 스택
-    stack<Node*> stack;
+    stack<Node *> stack;
     Node *ptr = *T;
-    while(ptr!=p){
-        if(ptr->key == p->key) break;
+    while (ptr != p) {
+        if (ptr->key == p->key) break;
         stack.push(ptr);
 
-        if(p->key < ptr->key) ptr = ptr->left;
+        if (p->key < ptr->key) ptr = ptr->left;
         else ptr = ptr->right;
     }
 
@@ -129,7 +129,7 @@ void rotateTree(Node **T, string rotationType, Node *p, Node **q) {
 
         //p의 부모노드 q가 nullptr인 경우 트리의 루트노드가 b가 되도록 함, 아니면 q와 p의 키값을 비교하고 서브트리 지정
         if (*q == nullptr) *T = b;
-        else if((*q)->key > p->key) (*q)->left = b;
+        else if ((*q)->key > p->key) (*q)->left = b;
         else (*q)->right = b;
 
 
@@ -152,7 +152,7 @@ void rotateTree(Node **T, string rotationType, Node *p, Node **q) {
 
         //p의 부모노드 q가 nullptr인 경우 트리의 루트노드가 c가 되도록 함, 아니면 q와 p의 키값을 비교하고 서브트리 지정
         if (*q == nullptr) *T = c;
-        else if((*q)->key > p->key) (*q)->left = c;
+        else if ((*q)->key > p->key) (*q)->left = c;
         else (*q)->right = c;
 
         //노드 높이, 밸런싱팩터 재계산
@@ -160,7 +160,7 @@ void rotateTree(Node **T, string rotationType, Node *p, Node **q) {
         a->bf = height(a->left) - height(a->right);
         b->height = 1 + max(height(b->left), height(b->right));
         b->bf = height(b->left) - height(b->right);
-        c->height = 1 + max(height(c->left) , height(c->right));
+        c->height = 1 + max(height(c->left), height(c->right));
         c->bf = height(c->left) - height(c->right);
 
     } else if (rotationType == "RR") {
@@ -172,7 +172,7 @@ void rotateTree(Node **T, string rotationType, Node *p, Node **q) {
 
         //p의 부모노드 q가 nullptr인 경우 트리의 루트노드가 b가 되도록 함, 아니면 q와 p의 키값을 비교하고 서브트리 지정
         if (*q == nullptr) *T = b;
-        else if((*q)->key > p->key) (*q)->left = b;
+        else if ((*q)->key > p->key) (*q)->left = b;
         else (*q)->right = b;
 
         //노드 높이, 밸런싱팩터 재계산
@@ -194,7 +194,7 @@ void rotateTree(Node **T, string rotationType, Node *p, Node **q) {
 
         //p의 부모노드 q가 nullptr인 경우 트리의 루트노드가 c가 되도록 함
         if (*q == nullptr) *T = c;
-        else if((*q)->key > p->key) (*q)->left = c;
+        else if ((*q)->key > p->key) (*q)->left = c;
         else (*q)->right = c;
 
         //노드 높이, 밸런싱팩터 재계산
@@ -202,13 +202,13 @@ void rotateTree(Node **T, string rotationType, Node *p, Node **q) {
         a->bf = height(a->left) - height(a->right);
         b->height = 1 + max(height(b->left), height(b->right));
         b->bf = height(b->left) - height(b->right);
-        c->height = 1 + max(height(c->left) , height(c->right));
+        c->height = 1 + max(height(c->left), height(c->right));
         c->bf = height(c->left) - height(c->right);
     }
 
 
     // 재균형 이후 노드의 height, balancing factor 재계산
-    while(!stack.empty()){
+    while (!stack.empty()) {
         ptr = stack.top();
         stack.pop();
         ptr->height = 1 + max(height(ptr->left), height(ptr->right));
@@ -224,7 +224,7 @@ bool insertAVL(Node **T, int newKey) {
         return true;
     }
 
-    string rotationType = "";
+    string rotationType = "NO";
     Node *p = nullptr;
     Node *q = nullptr;
 
@@ -280,16 +280,29 @@ Node *deleteBST(Node **T, int deleteKey);
 
 // AVL 삭제 알고리즘
 void deleteAVL(Node **T, int deleteKey) {
-    // Step1 : BST 삭제 알고리즘 실행
-    Node *parent = deleteBST(T, deleteKey);
-    if (parent == nullptr) return;
-
-    string rotationType = "";
+    string rotationType = "NO";
+    Node *parent = nullptr;
     Node *p = nullptr;
     Node *q = nullptr;
 
-    // Step2: 균형 검사
-    checkBalance(T, parent->key, &rotationType, &p, &q);
+    // Step1 : BST 삭제 알고리즘 실행
+    if (*T != nullptr && (*T)->key == deleteKey) { //루트 노드가 삭제할 키값을 가진 노드인 경우
+        deleteBST(T, deleteKey);
+
+        // Step2: 균형 검사
+        if(*T != nullptr)
+            checkBalance(T, (*T)->key, &rotationType, &p, &q);
+
+    } else {
+        parent = deleteBST(T, deleteKey);
+        if (parent == nullptr){
+            return;
+        }
+
+        // Step2: 균형 검사
+        checkBalance(T, parent->key, &rotationType, &p, &q);
+    }
+
     //rotationType 출력
     cout << rotationType << ' ';
 
@@ -417,12 +430,12 @@ Node *deleteBST(Node **T, int deleteKey) {
                 Node *tmp = maxNode(p->left);
                 p->key = tmp->key;
                 p->height = tmp->height;
-                deleteBST(&p->left, p->key);
+                ret = deleteBST(&p->left, p->key);
             } else {
                 Node *tmp = minNode(p->right);
                 p->key = tmp->key;
                 p->height = tmp->height;
-                deleteBST(&p->right, p->key);
+                ret = deleteBST(&p->right, p->key);
             }
         }// 삭제 해야 할 노드가 루트 노드가 아니고, 차수가 1개인 노드인 경우
         else if (p->left != nullptr) {
@@ -470,7 +483,7 @@ Node *deleteBST(Node **T, int deleteKey) {
             int leftNodes = noNodes(p->left);
             int rightNodes = noNodes(p->right);
 
-            if (leftNodes >= rightNodes) {
+            if (leftNodes == rightNodes) {
                 r = maxNode(p->left);
                 flag = "LEFT";
             } else {
@@ -482,9 +495,9 @@ Node *deleteBST(Node **T, int deleteKey) {
         p->key = r->key;
         p->height = r->height;
         if (flag == "LEFT") {
-            deleteBST(&p->left, r->key);
+            ret = deleteBST(&p->left, r->key);
         } else {
-            deleteBST(&p->right, r->key);
+            ret = deleteBST(&p->right, r->key);
         }
     }
 
