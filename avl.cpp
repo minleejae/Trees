@@ -63,6 +63,7 @@ void checkBalance(Node **T, int newKey, string *rotationType, Node **p, Node **q
         (*q)->bf = height((*q)->left) - height((*q)->right);
         cout << "here " << (*q)->key << ' ' << (*q)->bf << '\n';
 
+        // 불균형으로 판명된 최초의 노드 발견 하여 x에 대입, f는 x의 부모 노드
         if (1 < (*q)->bf || (*q)->bf < -1) {
             if (x == nullptr) {
                 x = *q;
@@ -71,6 +72,8 @@ void checkBalance(Node **T, int newKey, string *rotationType, Node **p, Node **q
             }
         }
     }
+
+
 
     //불균형이 발생하지 않으면, rotationType은 “NO”로 하고, p와 q는 널값을 리턴
     if (x == nullptr) {
@@ -82,6 +85,8 @@ void checkBalance(Node **T, int newKey, string *rotationType, Node **p, Node **q
 
     *p = x;
     *q = f;
+
+
     if (1 < x->bf) {
         if (x->left->bf < 0) {
             *rotationType = "LR";
@@ -99,11 +104,56 @@ void checkBalance(Node **T, int newKey, string *rotationType, Node **p, Node **q
 
 
 //  rotationType에 따라, p를 루트로 하는 서브트리를 회전하고 BF의 변경이 필요한 노드의 BF를 다시 계산함
-void rotateTree(Node **T, string rotationType, Node *p, Node *q) {
-    if (rotationType == "LL") {
+void rotateTree(Node **T, string rotationType, Node *p, Node **q) {
+    Node *a = nullptr;
+    Node *b = nullptr;
+    Node *c = nullptr;
 
+    // 루트노드부터 p까지 높이와 bf를 다시 업데이트 하기 위한 스택
+    stack<Node*> stack;
+    Node *ptr = *T;
+    while(ptr!=p){
+        if(ptr->key == p->key) break;
+        stack.push(ptr);
+
+        if(p->key < ptr->key) ptr = ptr->left;
+        else ptr = ptr->right;
+    }
+
+
+    if (rotationType == "LL") {
+        //재균형
+        a = p;
+        b = p->left;
+        a->left = b->right;
+        b->right = a;
+
+        //p의 부모노드 q가 nullptr인 경우 트리의 루트노드가 b가 되도록 함
+        if (*q == nullptr) *T = b;
+        else (*q)->left = b;
+        //노드 높이, 밸런싱팩터 재계산
+        a->height = 1 + max(height(a->left), height(a->right));
+        a->bf = height(a->left) - height(a->right);
+        b->height = 1 + max(height(b->left), height(b->right));
+        b->bf = height(b->left) - height(b->right);
 
     } else if (rotationType == "LR") {
+        a = p;
+        b = p->left;
+        c = b->right;
+
+        b->right = c->left;
+        a->left = c->right;
+        c->left = b;
+        c->right = a;
+
+        if (c->bf == 0) {
+
+        } else if (c->bf == 1) {
+
+        } else if (c->bf == -1) {
+
+        }
 
 
     } else if (rotationType == "RR") {
@@ -112,6 +162,15 @@ void rotateTree(Node **T, string rotationType, Node *p, Node *q) {
     } else if (rotationType == "RL") {
 
 
+    }
+
+
+    // 재균형 이후 노드의 height, balancing factor 재계산
+    while(!stack.empty()){
+        ptr = stack.top();
+        stack.pop();
+        ptr->height = 1 + max(height(ptr->left), height(ptr->right));
+        ptr->bf = height(ptr->left) - height(ptr->right);
     }
 }
 
@@ -141,7 +200,7 @@ bool insertAVL(Node **T, int newKey) {
 
     //Step 3: rebalancing 실행
     if (rotationType != "NO") {
-        rotateTree(T, rotationType, p, q);
+        rotateTree(T, rotationType, p, &q);
     }
 }
 
@@ -190,8 +249,8 @@ void deleteAVL(Node **T, int deleteKey) {
     // Step2: 균형 검사
     checkBalance(T, parent->key, &rotationType, &p, &q);
 
-    if(rotationType!="NO"){
-        rotateTree(T,rotationType,p,q);
+    if (rotationType != "NO") {
+        rotateTree(T, rotationType, p, &q);
     }
     return;
 }
