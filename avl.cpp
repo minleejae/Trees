@@ -265,6 +265,26 @@ void deleteAVL(Node **T, int deleteKey) {
     Node *p = nullptr;
     Node *q = nullptr;
 
+
+    // deleteKey에 해당하는 값이 루트노드인 경우
+    if(*T != nullptr && (*T)->key == deleteKey){
+        parent = deleteBST(T, deleteKey);
+
+        // 삭제되는 노드의 부모가 nullptr이 아닌 경우
+        if(parent != nullptr){
+            // Step2: 균형 검사
+            checkBalance(T, parent->key, &rotationType, &p, &q);
+        }
+        cout << rotationType << ' ';
+
+        //Step 3: rebalancing 실행
+        if (rotationType != "NO") {
+            rotateTree(T, rotationType, p, &q);
+        }
+        return;
+    }
+
+    // deleteKey값에 해당하는 노드가 존재하지 않는 경우
     parent = deleteBST(T, deleteKey);
     if (parent == nullptr) {
         return;
@@ -272,26 +292,6 @@ void deleteAVL(Node **T, int deleteKey) {
 
     // Step2: 균형 검사
     checkBalance(T, parent->key, &rotationType, &p, &q);
-
-
-//    // Step1 : BST 삭제 알고리즘 실행
-//    if (*T != nullptr && (*T)->key == deleteKey) { //루트 노드가 삭제할 키값을 가진 노드인 경우
-//        deleteBST(T, deleteKey);
-//
-//        // Step2: 균형 검사
-//        if (*T != nullptr)
-//            checkBalance(T, (*T)->key, &rotationType, &p, &q);
-//
-//    } else {
-//        parent = deleteBST(T, deleteKey);
-//        if (parent == nullptr) {
-//            return;
-//        }
-//
-//        // Step2: 균형 검사
-//        cout << parent->key << ' ';
-//        checkBalance(T, parent->key, &rotationType, &p, &q);
-//    }
 
     //rotationType 출력
     cout << rotationType << ' ';
