@@ -161,7 +161,7 @@ void rotateTree(Node **T, string rotationType, Node *p, Node **q) {
         b->height = 1 + max(height(b->left), height(b->right));
         b->bf = height(b->left) - height(b->right);
         c->height = 1 + max(height(c->left) , height(c->right));
-        c->bf = height(a->left) - height(a->right);
+        c->bf = height(c->left) - height(c->right);
 
     } else if (rotationType == "RR") {
         //재균형
@@ -203,7 +203,7 @@ void rotateTree(Node **T, string rotationType, Node *p, Node **q) {
         b->height = 1 + max(height(b->left), height(b->right));
         b->bf = height(b->left) - height(b->right);
         c->height = 1 + max(height(c->left) , height(c->right));
-        c->bf = height(a->left) - height(a->right);
+        c->bf = height(c->left) - height(c->right);
     }
 
 
