@@ -49,10 +49,8 @@ void checkBalance(Node **T, int newKey, string *rotationType, Node **p, Node **q
 
     //newKey를 발견할 때까지 BST 탐색하면서 stack에 추가
     while (*p != nullptr) {
-        *q = *p;
-        stack.push(*q);
+        stack.push(*p);
         if (newKey == (*p)->key) break;
-
         if (newKey < (*p)->key) *p = (*p)->left;
         else *p = (*p)->right;
     }
@@ -256,24 +254,6 @@ int noNodes(Node *T) {
     return cnt;
 }
 
-// 현재 노드의 하위 노드들 중 키값이 가장 큰 노드를 리턴하는 함수
-Node *maxNode(Node *T) {
-    Node *p = T;
-    while (p->right) {
-        p = p->right;
-    }
-    return p;
-}
-
-// 현재 노드의 하위 노드들 중 키값이 가장 작은 노드를 리턴하는 함수
-Node *minNode(Node *T) {
-    Node *p = T;
-    while (p->left) {
-        p = p->left;
-    }
-    return p;
-}
-
 // deleteKey의 위치를 검색하여 삭제 실행함
 Node *deleteBST(Node **T, int deleteKey);
 
@@ -285,23 +265,33 @@ void deleteAVL(Node **T, int deleteKey) {
     Node *p = nullptr;
     Node *q = nullptr;
 
-    // Step1 : BST 삭제 알고리즘 실행
-    if (*T != nullptr && (*T)->key == deleteKey) { //루트 노드가 삭제할 키값을 가진 노드인 경우
-        deleteBST(T, deleteKey);
-
-        // Step2: 균형 검사
-        if(*T != nullptr)
-            checkBalance(T, (*T)->key, &rotationType, &p, &q);
-
-    } else {
-        parent = deleteBST(T, deleteKey);
-        if (parent == nullptr){
-            return;
-        }
-
-        // Step2: 균형 검사
-        checkBalance(T, parent->key, &rotationType, &p, &q);
+    parent = deleteBST(T, deleteKey);
+    if (parent == nullptr) {
+        return;
     }
+
+    // Step2: 균형 검사
+    checkBalance(T, parent->key, &rotationType, &p, &q);
+
+
+//    // Step1 : BST 삭제 알고리즘 실행
+//    if (*T != nullptr && (*T)->key == deleteKey) { //루트 노드가 삭제할 키값을 가진 노드인 경우
+//        deleteBST(T, deleteKey);
+//
+//        // Step2: 균형 검사
+//        if (*T != nullptr)
+//            checkBalance(T, (*T)->key, &rotationType, &p, &q);
+//
+//    } else {
+//        parent = deleteBST(T, deleteKey);
+//        if (parent == nullptr) {
+//            return;
+//        }
+//
+//        // Step2: 균형 검사
+//        cout << parent->key << ' ';
+//        checkBalance(T, parent->key, &rotationType, &p, &q);
+//    }
 
     //rotationType 출력
     cout << rotationType << ' ';
@@ -389,11 +379,10 @@ bool insertBST(Node **T, int newKey) {
 // deleteKey의 위치를 검색하여 삭제하여 부모노드 반환
 Node *deleteBST(Node **T, int deleteKey) {
     //삭제할 노드 p,  삭제할 노드의 부모 노드 q
-    Node *p = *T, *q = nullptr;
+    Node *p = *T, *q = nullptr, *temp = nullptr;
     stack<Node *> stack;
 
-    while (p != nullptr) {
-        if (deleteKey == p->key) break;
+    while (p != nullptr && deleteKey != p->key) {
         q = p;
         stack.push(q);
 
@@ -407,11 +396,34 @@ Node *deleteBST(Node **T, int deleteKey) {
         return nullptr;
     }
 
+    // 삭제할 노드의 차수가 2인 경우
+    if (p->left != nullptr && p->right != nullptr) {
+        stack.push(p);
+        temp = p;
+
+        if (height(p->left) <= height(p->right)) {
+            p = p->right;
+            while (p->left != nullptr) {
+                stack.push(p);
+                p = p->left;
+            }
+        } else {
+            p = p->left;
+            while (p->right != nullptr) {
+                stack.push(p);
+                p = p->right;
+            }
+        }
+
+        temp->key = p->key;
+        q = stack.top();
+    }
+
+    // 삭제되는 노드의 부모 노드q
     Node *ret = q;
 
-    // 삭제할 노드의 차수가 0인 경우(리프 노드)
+    // p의 차수가 0인 경우
     if (p->left == nullptr && p->right == nullptr) {
-        //루트 노드만 있는 경우, 루트를 삭제
         if (q == nullptr) {
             delete *T;
             *T = nullptr;
@@ -422,82 +434,23 @@ Node *deleteBST(Node **T, int deleteKey) {
             delete q->right;
             q->right = nullptr;
         }
-    }// 삭제할 노드의 차수가 1인 경우
-    else if (p->left == nullptr || p->right == nullptr) {
-        //삭제 해야 할 노드가 루트 노드고 차수가 1개인 경우
-        if (q == nullptr) {
-            if (p->left != nullptr) {
-                Node *tmp = maxNode(p->left);
-                p->key = tmp->key;
-                p->height = tmp->height;
-                ret = deleteBST(&p->left, p->key);
-            } else {
-                Node *tmp = minNode(p->right);
-                p->key = tmp->key;
-                p->height = tmp->height;
-                ret = deleteBST(&p->right, p->key);
-            }
-        }// 삭제 해야 할 노드가 루트 노드가 아니고, 차수가 1개인 노드인 경우
-        else if (p->left != nullptr) {
-            if (q->left == p) {
+    } else { // 차수가 1인 경우
+        if (p->left != nullptr) {
+            if (q == nullptr) {
+                *T = (*T)->left;
+            } else if (q->left == p) {
                 q->left = p->left;
-
-                delete p;
-                p = nullptr;
             } else {
                 q->right = p->left;
-
-                delete p;
-                p = nullptr;
             }
-        }// p의 오른쪽 자식만 있는 경우
-        else {
-            if (q->left == p) {
+        } else {
+            if (q == nullptr) {
+                *T = (*T)->right;
+            } else if (q->left == p) {
                 q->left = p->right;
-
-                delete p;
-                p = nullptr;
             } else {
                 q->right = p->right;
-
-                delete p;
-                p = nullptr;
             }
-        }
-    } else { // 삭제할 노드의 차수가 2인 경우
-        string flag;
-        Node *r = nullptr;
-
-        stack.push(p);
-
-        int leftHeight = height(p->left);
-        int rightHeight = height(p->right);
-
-        if (leftHeight > rightHeight) {
-            r = maxNode(p->left);
-            flag = "LEFT";
-        } else if (leftHeight < rightHeight) {
-            r = minNode(p->right);
-            flag = "RIGHT";
-        } else {
-            int leftNodes = noNodes(p->left);
-            int rightNodes = noNodes(p->right);
-
-            if (leftNodes == rightNodes) {
-                r = maxNode(p->left);
-                flag = "LEFT";
-            } else {
-                r = minNode(p->right);
-                flag = "RIGHT";
-            }
-        }
-
-        p->key = r->key;
-        p->height = r->height;
-        if (flag == "LEFT") {
-            ret = deleteBST(&p->left, r->key);
-        } else {
-            ret = deleteBST(&p->right, r->key);
         }
     }
 
