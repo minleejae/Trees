@@ -10,6 +10,7 @@ using namespace std;
 
  실행환경 : c++14 버전
  IDE : CLion으로 실행했습니다.
+
 */
 
 // AVL의 각 노드를 표현하는 클래스
@@ -318,7 +319,6 @@ int main() {
 
     //파일 입력
     freopen("AVL-input.txt", "rt", stdin);
-    freopen("output_test2.txt", "w", stdout);
 
     char c;
     int num;
@@ -364,7 +364,7 @@ bool insertBST(Node **T, int newKey) {
         q->right = newNode;
     }
 
-
+    //높이 갱신
     while (!stack.empty()) {
         q = stack.top();
         stack.pop();
@@ -381,6 +381,7 @@ Node *deleteBST(Node **T, int deleteKey) {
     //삭제할 노드 p,  삭제할 노드의 부모 노드 q
     Node *p = *T, *q = nullptr, *temp = nullptr;
     stack<Node *> stack;
+
 
     while (p != nullptr && deleteKey != p->key) {
         q = p;
@@ -401,7 +402,27 @@ Node *deleteBST(Node **T, int deleteKey) {
         stack.push(p);
         temp = p;
 
-        if (height(p->left) <= height(p->right)) {
+        // 왼쪽과 오른쪽의 높이가 같은 경우 노드의 개수를 비교하여 교체할 노드를 선택함
+        if(height(p->left) == height(p->right)){
+            int leftNodes = noNodes(p->left);
+            int rightNodes = noNodes(p->right);
+
+            if(leftNodes <= rightNodes){
+                p = p->right;
+                while (p->left != nullptr) {
+                    stack.push(p);
+                    p = p->left;
+                }
+            }
+            else{
+                p = p->left;
+                while (p->right != nullptr) {
+                    stack.push(p);
+                    p = p->right;
+                }
+            }
+        }
+        else if (height(p->left) < height(p->right)) {
             p = p->right;
             while (p->left != nullptr) {
                 stack.push(p);
