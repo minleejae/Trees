@@ -18,9 +18,9 @@ Node *getNode() {
 
 
 // key에 대한 검색 수행, key 발견 여부와 방문한 정점 경로를 담은 stack리턴, 주어진 stack이 null이 아닌 스택이 주어지면 해당 스택에 경로를 저장
-bool searchPath(Node *T, int m, int key, stack<Node *> *stack) {
-    if (stack == nullptr) {
-        stack = new ::stack<Node *>();
+bool searchPath(Node *T, int m, int key, stack<Node *> **stack) {
+    if (*stack == nullptr) {
+        *stack = new ::stack<Node *>();
     }
 
     Node *x = T;
@@ -36,7 +36,7 @@ bool searchPath(Node *T, int m, int key, stack<Node *> *stack) {
             return true;
         }
 
-        stack->push(x);
+        (*stack)->push(x);
     } while ((x = x->P[i - 1]) != nullptr);
     return false;
 }
@@ -115,20 +115,20 @@ void insertBT(Node **T, int m, int newKey) {
 
     // newKey를 삽입할 노드의 경로를 탐색하며, 스택에 경로 저장
     bool found;
-    stack<Node *> stack;
+    stack<Node *> *stack = nullptr;
     found = searchPath(*T, m, newKey, &stack);
 
     //newKey를 발견함, 삽입 불가
     if (found) {
-        cout << "i <" << newKey << "> : The key already exists" << '\n';
+        cout << "i " << newKey << " : The key already exists" << '\n';
         return;
     }
 
     // newKey가 없으므로, T에 삽입 (이제 x는 null)
     bool finished = false;
-    Node *x = stack.top();
+    Node *x = stack->top();
 
-    stack.pop();
+    stack->pop();
     Node *y = nullptr; //새로 분할된 노드를 담을 변수
 
     do {//Overflow 발생 여부 검사
@@ -139,11 +139,10 @@ void insertBT(Node **T, int m, int newKey) {
             //x를 newKey 기준으로 분할, 분할된 노드 반환
             splitNode(T, m, &x, &y, newKey);
 
-            if (!stack.empty()) {
-                x = stack.top();
-                stack.pop();
+            if (!(stack->empty())) {
+                x = stack->top();
+                stack->pop();
             } else {
-                cout << x->n << '\n';
                 *T = getNode();
                 (*T)->n++;
                 (*T)->K[1] = newKey;
@@ -153,6 +152,63 @@ void insertBT(Node **T, int m, int newKey) {
             }
         }
     } while (!finished);
+}
+
+
+// oldKey를 x에서 제거 수행
+void deleteKey(Node **T, int m, Node **x, int oldKey) {
+    //oldKey의 위치 i를 탐색
+    int i = 1;
+    while (oldKey > (*x)->K[i]) {
+        i++;
+    }
+    while (i <= (*x)->n) {
+        (*x)->K[i] = (*x)->K[i + 1];
+        (*x)->P[i] = (*x)->P[i + 1];
+        i++;
+    }
+    (*x)->n--;
+}
+
+// 노드 x와 해당 노드의 부모 노드 y가 주어졌을 때, x의 best 형제 노드를 반환
+void bestSibling(Node **T, int m, Node **x, Node **y) {
+
+}
+
+// 노드 x와 해당 노드의 부모 노드 y 그리고 y에서의 best sibling의 인덱스
+// bestSibling이 주어졌을 때 x와 best sibling 노드간의 키 재분배 수행
+void redistributeKeys(Node **T, int m, Node **x, Node **y, int bestSibling) {
+
+}
+
+// 노드 x와 해당 노드의 부모 노드 y, 그리고 y에서의 best sibling의 인덱스
+// bestSibling이 주어졌을 때 x와 best sibling 노드간의 합병 수행
+void mergeNode(Node **T, int m, Node *x, Node *y, int bestSibling) {
+
+}
+
+//B-tree의 삭제 알고리즘
+void deleteBT(Node **T, int m, int oldKey) {
+    // oldKey가 있던 노드의 경로를 탐색하며 스택에 경로 저장
+    bool found;
+    stack<Node *> *stack = nullptr;
+
+    found = searchPath(*T, m, oldKey, &stack);
+
+    //oldKey를 발견 못함, 삭제 불가
+    if (!found) {
+        cout << "d " << oldKey << " : The key does not exist" << '\n';
+        return;
+    }
+
+//    Node *x = stack->top();
+//    stack->pop();
+
+//    cout << "here" << "\n";
+    cout << stack->size() << '\n';
+//    cout << x << '\n';
+//    cout << x->n << '\n';
+
 }
 
 // 출력을 위한 B-tree의 inorder 순회 알고리즘
@@ -172,13 +228,13 @@ int main() {
     char c;
     int num;
     //파일 입력
-//    freopen("BT-input.txt", "rt", stdin);
+    freopen("BT-input.txt", "rt", stdin);
 
     while (cin >> c >> num) {
         if (c == 'i') {
             insertBT(&T, 3, num);
         } else if (c == 'd') {
-//            deleteBT(&T,3, num);
+            deleteBT(&T, 3, num);
         }
         inorderBT(T, 3);
         cout << '\n';
