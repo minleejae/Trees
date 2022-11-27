@@ -19,6 +19,11 @@ Node *getNode() {
 
 // key에 대한 검색 수행, key 발견 여부와 방문한 정점 경로를 담은 stack리턴, 주어진 stack이 null이 아닌 스택이 주어지면 해당 스택에 경로를 저장
 bool searchPath(Node *T, int m, int key, stack<Node *> **stack) {
+    if (T == nullptr) {
+        return false;
+    }
+
+
     if (*stack == nullptr) {
         *stack = new ::stack<Node *>();
     }
@@ -31,12 +36,12 @@ bool searchPath(Node *T, int m, int key, stack<Node *> **stack) {
             i++;
         }
 
+        (*stack)->push(x);
         //삽입할 키를 발견함, 삽입 불가
         if (i <= x->n && key == x->K[i]) {
             return true;
         }
 
-        (*stack)->push(x);
     } while ((x = x->P[i - 1]) != nullptr);
     return false;
 }
@@ -127,8 +132,8 @@ void insertBT(Node **T, int m, int newKey) {
     // newKey가 없으므로, T에 삽입 (이제 x는 null)
     bool finished = false;
     Node *x = stack->top();
-
     stack->pop();
+
     Node *y = nullptr; //새로 분할된 노드를 담을 변수
 
     do {//Overflow 발생 여부 검사
@@ -162,6 +167,8 @@ void deleteKey(Node **T, int m, Node **x, int oldKey) {
     while (oldKey > (*x)->K[i]) {
         i++;
     }
+
+
     while (i <= (*x)->n) {
         (*x)->K[i] = (*x)->K[i + 1];
         (*x)->P[i] = (*x)->P[i + 1];
@@ -171,20 +178,96 @@ void deleteKey(Node **T, int m, Node **x, int oldKey) {
 }
 
 // 노드 x와 해당 노드의 부모 노드 y가 주어졌을 때, x의 best 형제 노드를 반환
-void bestSibling(Node **T, int m, Node **x, Node **y) {
+int bestSibling(Node **T, int m, Node *x, Node *y) {
+    //y에서 x의 위치 i를 탐색
+    int i = 0;
+    while (y->P[i] != x) {
+        i++;
+    }
 
+    //바로 인접한 두 형제 중, 키의 개수가 많은 형제를 bestSibling으로 선택함.
+    if (i == 0) {
+        return i + 1;
+    } else if (i == y->n || y->P[i]->n >= y->P[i + 1]->n)
+        return i - 1;
+    return i + 1;
 }
 
 // 노드 x와 해당 노드의 부모 노드 y 그리고 y에서의 best sibling의 인덱스
 // bestSibling이 주어졌을 때 x와 best sibling 노드간의 키 재분배 수행
-void redistributeKeys(Node **T, int m, Node **x, Node **y, int bestSibling) {
+void redistributeKeys(Node **T, int m, Node **x, Node **y, int bestSib) {
+    int i = 0;
+    while ((*y)->P[i] != *x) {
+        i++;
+    }
 
+    Node *bestNode = (*y)->P[bestSib];
+
+    //키 재분배를 하며 포인터도 변경
+    if (bestSib < i) {
+        int lastKey = bestNode->K[bestNode->n];
+        insertKey(T, m, *x, nullptr, (*y)->K[i]);
+        (*x)->P[0] = bestNode->P[bestNode->n];
+        bestNode->P[bestNode->n] = nullptr;
+        deleteKey(T, m, &bestNode, lastKey);
+        (*y)->K[i] = lastKey;
+    } else {
+        int firstKey = bestNode->K[1];
+        insertKey(T, m, *x, nullptr, (*y)->K[i + 1]);
+        (*x)->P[m / 2] = bestNode->P[0];
+        bestNode->P[0] = bestNode->P[1];
+        deleteKey(T, m, &bestNode, firstKey);
+        (*y)->K[i + 1] = firstKey;
+    }
 }
 
 // 노드 x와 해당 노드의 부모 노드 y, 그리고 y에서의 best sibling의 인덱스
 // bestSibling이 주어졌을 때 x와 best sibling 노드간의 합병 수행
-void mergeNode(Node **T, int m, Node *x, Node *y, int bestSibling) {
+void mergeNode(Node **T, int m, Node **x, Node **y, int bestSib) {
+    int i = 0;
+    while ((*y)->P[i] != *x) {
+        i++;
+    }
 
+    Node *bestNode = (*y)->P[bestSib];
+
+    //왼쪽 형제 노드로의 병합만 고려할 수 있도록 swap
+    if (bestSib > i) {
+        int tmp = i;
+        i = bestSib;
+        bestSib = tmp;
+
+        Node *tmpNode = *x;
+        *x = bestNode;
+        bestNode = tmpNode;
+    }
+
+    //왼쪽 형제노드와 병합
+    bestNode->K[bestNode->n + 1] = (*y)->K[i];
+    bestNode->n++;
+    int j = 1;
+
+    while (j <= (*x)->n) {
+        bestNode->K[bestNode->n + 1] = (*x)->K[j];
+        bestNode->P[bestNode->n] = (*x)->P[j - 1];
+        bestNode->n++;
+        j++;
+    }
+    bestNode->P[bestNode->n] = (*x)->P[(*x)->n];
+    deleteKey(T, m, y, (*y)->K[i]);
+
+    delete *x;
+}
+
+bool isTerminalNode(int stackSize, Node *T) {
+    Node *x = T;
+    int height = 1;
+    while (x->P[1] != nullptr) {
+        height++;
+        x = x->P[1];
+    }
+
+    return (stackSize == height);
 }
 
 //B-tree의 삭제 알고리즘
@@ -201,19 +284,80 @@ void deleteBT(Node **T, int m, int oldKey) {
         return;
     }
 
-//    Node *x = stack->top();
-//    stack->pop();
+    int stackSize = stack->size();
+    Node *x = stack->top();
+    stack->pop();
 
-//    cout << "here" << "\n";
-    cout << stack->size() << '\n';
-//    cout << x << '\n';
-//    cout << x->n << '\n';
 
+    //oldKey를 내부 노드에서 발견
+    if (!isTerminalNode(stackSize, *T)) {
+        Node *internalNode = x;
+
+        int i = 0;
+        for (int j = 1; j <= internalNode->n; j++) {
+            if (oldKey == internalNode->K[j]) {
+                i = j;
+                break;
+            }
+        }
+        stack->push(x);
+        searchPath(x->P[i], m, x->K[i], &stack);
+
+        x = stack->top();
+        stack->pop();
+
+        int temp = internalNode->K[i];
+        internalNode->K[i] = x->K[1];
+        x->K[1] = temp;
+
+        deleteKey(T, m, &x, x->K[1]);
+    } else {
+        //노드 x에서 oldKey를 삭제
+        deleteKey(T, m, &x, oldKey);
+    }
+
+    bool finished = false;
+
+    Node *y = nullptr;
+    if (!stack->empty()) {
+        y = stack->top();
+        stack->pop();
+    }
+
+    do {
+        if (*T == x || x->n >= (m - 1) / 2) { //underflow 발생하지 않음
+            finished = true;
+        } else { // underflow 발생
+            //키 재분배 또는 노드 합병을 위한 형제 노드를 결정
+            int bestSib = bestSibling(T, m, x, y);
+
+            if (y->P[bestSib]->n > (m - 1) / 2) { // bestSibling에서 재분배
+                redistributeKeys(T, m, &x, &y, bestSib);
+                finished = true;
+            } else { // bestSibling과 노드 합병
+                mergeNode(T, m, &x, &y, bestSib);
+
+                x = y;
+
+                if (!stack->empty()) {
+                    y = stack->top();
+                    stack->pop();
+                } else {
+                    finished = true;
+                }
+            }
+        }
+    } while (!finished);
+
+    if (y != nullptr && y->n == 0) { //y에 키가 없음(비어있음)
+        (*T) = y->P[0];
+        delete y; // old root 삭제, 트리 높이가 하나 줄어듦
+    }
 }
 
 // 출력을 위한 B-tree의 inorder 순회 알고리즘
 void inorderBT(Node *T, int m) {
-    if (T->n == 0) return;
+    if (T == nullptr || T->n == 0) return;
     for (int i = 0; i <= T->n; i++) {
         if (T->P[i] != nullptr)
             inorderBT(T->P[i], m);
@@ -223,13 +367,13 @@ void inorderBT(Node *T, int m) {
 }
 
 
+
 int main() {
     Node *T = nullptr;
     char c;
     int num;
     //파일 입력
-    freopen("BT-input.txt", "rt", stdin);
-
+    FILE *fp = freopen("BT-input.txt", "rt", stdin);
     while (cin >> c >> num) {
         if (c == 'i') {
             insertBT(&T, 3, num);
@@ -239,5 +383,22 @@ int main() {
         inorderBT(T, 3);
         cout << '\n';
     }
+    fclose(fp);
+
+
+//    // m이 4일 때 결과
+    T = nullptr;
+    fseek(fp, 0, SEEK_SET);
+    while (cin >> c >> num) {
+        if (c == 'i') {
+            insertBT(&T, 4, num);
+        } else if (c == 'd') {
+            deleteBT(&T, 4, num);
+        }
+        inorderBT(T, 4);
+        cout << '\n';
+    }
+    fclose(fp);
+
     return 0;
 }
