@@ -366,39 +366,41 @@ void inorderBT(Node *T, int m) {
     }
 }
 
-
+//파일 입력을 받기위한 배열
+char command[10001];
+int numbers[10001];
+int len = 0;
 
 int main() {
     Node *T = nullptr;
-    char c;
-    int num;
+
     //파일 입력
-    FILE *fp = freopen("BT-input.txt", "rt", stdin);
-    while (cin >> c >> num) {
-        if (c == 'i') {
-            insertBT(&T, 3, num);
-        } else if (c == 'd') {
-            deleteBT(&T, 3, num);
+    freopen("BT-input.txt", "rt", stdin);
+    while(cin >> command[len] >> numbers[len]){
+        len++;
+    }
+
+    // m이 3일 때 결과
+    for(int i=0; i<len; i++){
+        if (command[i] == 'i') {
+            insertBT(&T, 3, numbers[i]);
+        } else if (command[i] == 'd') {
+            deleteBT(&T, 3, numbers[i]);
         }
         inorderBT(T, 3);
         cout << '\n';
     }
-    fclose(fp);
 
-
-//    // m이 4일 때 결과
-    T = nullptr;
-    fseek(fp, 0, SEEK_SET);
-    while (cin >> c >> num) {
-        if (c == 'i') {
-            insertBT(&T, 4, num);
-        } else if (c == 'd') {
-            deleteBT(&T, 4, num);
+    // m이 4일 때 결과
+    for(int i=0; i<len; i++){
+        if (command[i] == 'i') {
+            insertBT(&T, 4, numbers[i]);
+        } else if (command[i] == 'd') {
+            deleteBT(&T, 4, numbers[i]);
         }
         inorderBT(T, 4);
         cout << '\n';
     }
-    fclose(fp);
 
     return 0;
 }
