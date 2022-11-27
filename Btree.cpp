@@ -1,9 +1,16 @@
 #include <iostream>
 #include <stack>
-
 #define M_MAX 6
-
 using namespace std;
+
+/*
+ 2분반 20191638 이민재 B-Tree 과제 코드 입니다.
+ 삽입 : 성공
+ 삭제 : 성공
+ 실행환경 : c++14 버전
+ IDE : CLion으로 실행했습니다.
+*/
+
 
 //B 트리 노드를 표현하는 클래스 또는 구조체
 struct Node {
